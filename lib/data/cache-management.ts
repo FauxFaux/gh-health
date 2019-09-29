@@ -7,6 +7,7 @@ import { getRepos } from '../hefty/gh';
 import { repoBarePath, reposJson } from './cache-paths';
 import { IRepo } from './gh-org-repos';
 import { ensureRepo } from '../hefty/git';
+import { IRepoInfo, repoInfo } from '../hefty/repo-info';
 
 const concurrency = os.cpus().length;
 
@@ -28,5 +29,18 @@ export async function fetchRepos(org: string) {
       await ensureRepo(repoBarePath(repo.full_name), repo.ssh_url);
     },
     { concurrency },
+  );
+}
+
+export async function repoMeta(
+  repos: IRepo[],
+): Promise<Array<{ repo: IRepo; info: IRepoInfo }>> {
+  return await pMap(
+    repos,
+    async (repo) => ({
+      repo,
+      info: await repoInfo(repoBarePath(repo.full_name)),
+    }),
+    { concurrency: 1 },
   );
 }
