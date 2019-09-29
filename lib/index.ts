@@ -88,6 +88,7 @@ async function main() {
       repo.private ? '  ' : megaphone,
       repo.fork ? fork : '  ',
       comp.veryOld ? veryOld : (comp.quiteOld ? quiteOld : '  '),
+      (repo.has_issues ? repo.open_issues_count : 0).toString().padStart(3),
       repo.name,
       (info.packageJson ? `(nee ${info.packageJson.name})` : ''),
       owners.length ? owners : '',
