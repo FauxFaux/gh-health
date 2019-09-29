@@ -9,6 +9,7 @@ import {
   repoMeta,
 } from './data/cache-management';
 import { loadRoots } from './data/roots';
+import moment = require('moment');
 
 async function main() {
   const argv = require('yargs')
@@ -31,20 +32,41 @@ async function main() {
 
   const ghData = await githubData(org);
   debug(`extracting info from ${ghData.length} repos`);
-  let repos = await repoMeta(ghData);
+  let reposP = await repoMeta(ghData);
 
-  const roots = await loadRoots(repos, argv.roots);
+  const roots = await loadRoots(reposP, argv.roots);
+
+  const quiteOldCutoff = moment().subtract(2, 'months').toDate();
+  const veryOldCutoff = moment().subtract(8, 'months').toDate();
+
+  let repos = reposP.map(({ repo, info }) => {
+    const lastPush = new Date(repo.pushed_at || repo.created_at);
+    const rootOwners = (info.codeOwners || []).filter((co) => co.pattern === '*');
+    return {
+      repo,
+      info,
+      comp: {
+        rootOwners,
+        owners: rootOwners.length,
+        lastPush,
+        quiteOld: lastPush < quiteOldCutoff,
+        veryOld: lastPush < veryOldCutoff,
+      },
+    };
+  });
 
   repos = _.sortBy(
     repos,
-    ({ info }) =>
-      (info.codeOwners || []).filter((co) => co.pattern === '*').length,
+    ({ comp }) => comp.owners,
     ({ repo }) => roots.has(repo.name),
     ({ repo }) => !repo.private,
     ({ repo }) => !repo.fork,
+    ({ comp }) => comp.quiteOld,
+    ({ comp }) => comp.veryOld,
     ({ repo }) => repo.full_name,
   );
-  for (const { repo, info } of repos) {
+
+  for (const { repo, info, comp } of repos) {
     if (repo.archived) {
       continue;
     }
@@ -53,6 +75,8 @@ async function main() {
     const fork = '\u{1F374}';
     const queen = '\u{1F478}';
     const treeRoot = '\u{1F332}';
+    const veryOld = '\u{26B0}\u{FE0F} ';
+    const quiteOld = '\u{1F474}';
 
     const owners = (info.codeOwners || [])
       .filter((co) => co.pattern === '*')
@@ -63,10 +87,10 @@ async function main() {
       roots.has(repo.name) ? treeRoot : '  ',
       repo.private ? '  ' : megaphone,
       repo.fork ? fork : '  ',
-      repo.pushed_at,
+      comp.veryOld ? veryOld : (comp.quiteOld ? quiteOld : '  '),
       repo.name,
-      '(' + (info.packageJson ? info.packageJson.name : 'n/a') + ')',
-      owners,
+      (info.packageJson ? `(nee ${info.packageJson.name})` : ''),
+      owners.length ? owners : '',
     );
   }
 }
