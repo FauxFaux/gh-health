@@ -36,12 +36,18 @@ async function main() {
 
   const roots = await loadRoots(reposP, argv.roots);
 
-  const quiteOldCutoff = moment().subtract(2, 'months').toDate();
-  const veryOldCutoff = moment().subtract(8, 'months').toDate();
+  const quiteOldCutoff = moment()
+    .subtract(2, 'months')
+    .toDate();
+  const veryOldCutoff = moment()
+    .subtract(8, 'months')
+    .toDate();
 
   let repos = reposP.map(({ repo, info }) => {
     const lastPush = new Date(repo.pushed_at || repo.created_at);
-    const rootOwners = (info.codeOwners || []).filter((co) => co.pattern === '*');
+    const rootOwners = (info.codeOwners || [])
+      .filter((co) => co.pattern === '*')
+      .map((co) => co.owners);
     return {
       repo,
       info,
@@ -78,20 +84,16 @@ async function main() {
     const veryOld = '\u{26B0}\u{FE0F} ';
     const quiteOld = '\u{1F474}';
 
-    const owners = (info.codeOwners || [])
-      .filter((co) => co.pattern === '*')
-      .map((co) => co.owners);
-
     console.log(
-      owners.length ? queen : '  ',
+      comp.owners ? queen : '  ',
       roots.has(repo.name) ? treeRoot : '  ',
       repo.private ? '  ' : megaphone,
       repo.fork ? fork : '  ',
-      comp.veryOld ? veryOld : (comp.quiteOld ? quiteOld : '  '),
+      comp.veryOld ? veryOld : comp.quiteOld ? quiteOld : '  ',
       (repo.has_issues ? repo.open_issues_count : 0).toString().padStart(3),
       repo.name,
-      (info.packageJson ? `(nee ${info.packageJson.name})` : ''),
-      owners.length ? owners : '',
+      info.packageJson ? `(nee ${info.packageJson.name})` : '',
+      comp.owners ? comp.rootOwners : '',
     );
   }
 }
