@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+
 const debug = require('debug')('gh-health');
 
 import {
@@ -7,6 +8,7 @@ import {
   githubData,
   repoMeta,
 } from './data/cache-management';
+import { loadRoots } from './data/roots';
 
 async function main() {
   const argv = require('yargs')
@@ -14,6 +16,7 @@ async function main() {
     // .command('update', 'fetch things from the internet', async )
     .option('update', {})
     .option('fetch', {})
+    .option('roots', { nargs: 1 })
     .help().argv;
 
   const org = argv.org;
@@ -29,10 +32,14 @@ async function main() {
   const ghData = await githubData(org);
   debug(`extracting info from ${ghData.length} repos`);
   let repos = await repoMeta(ghData);
+
+  const roots = await loadRoots(repos, argv.roots);
+
   repos = _.sortBy(
     repos,
     ({ info }) =>
       (info.codeOwners || []).filter((co) => co.pattern === '*').length,
+    ({ repo }) => roots.has(repo.name),
     ({ repo }) => !repo.private,
     ({ repo }) => !repo.fork,
     ({ repo }) => repo.full_name,
@@ -45,6 +52,7 @@ async function main() {
     const megaphone = '\u{1F4E2}';
     const fork = '\u{1F374}';
     const queen = '\u{1F478}';
+    const treeRoot = '\u{1F332}';
 
     const owners = (info.codeOwners || [])
       .filter((co) => co.pattern === '*')
@@ -52,8 +60,10 @@ async function main() {
 
     console.log(
       owners.length ? queen : '  ',
+      roots.has(repo.name) ? treeRoot : '  ',
       repo.private ? '  ' : megaphone,
       repo.fork ? fork : '  ',
+      repo.pushed_at,
       repo.name,
       '(' + (info.packageJson ? info.packageJson.name : 'n/a') + ')',
       owners,
