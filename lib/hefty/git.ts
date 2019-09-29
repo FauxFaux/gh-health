@@ -1,4 +1,6 @@
 import { spawn } from 'child_process';
+import * as fs from 'fs-extra';
+const debug = require('debug')('hefty/git');
 
 async function callGit(cwd: string, command: string[]): Promise<string> {
   const child = spawn('/usr/bin/git', command, {
@@ -21,6 +23,16 @@ async function callGit(cwd: string, command: string[]): Promise<string> {
     });
     child.once('error', (err) => reject(err));
   });
+}
+
+export async function ensureRepo(path: string, cloneUrl: string) {
+  if (!fs.existsSync(path)) {
+    debug(`cloning missing ${cloneUrl} to ${path}`);
+    await gitClone(cloneUrl, path);
+  } else {
+    debug(`fetching ${path}`);
+    await gitRemoteUpdate(path);
+  }
 }
 
 export async function gitClone(url: string, dest: string): Promise<void> {
