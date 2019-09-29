@@ -1,4 +1,6 @@
 import * as fs from 'fs-extra';
+import * as _ from 'lodash';
+
 import { IRepo } from './gh-org-repos';
 import { IRepoInfo } from '../hefty/repo-info';
 
@@ -24,8 +26,10 @@ export async function loadRoots(
 
   debug(`before: ${roots.size}`);
 
-  for (let i = 0; i < 10; ++i) {
-    for (const { repo, info } of repos) {
+  while (true) {
+    const start = roots.size;
+
+    for (const { repo, info } of _.sortBy(repos, ({ repo }) => repo.name)) {
       if (repo.archived) {
         continue;
       }
@@ -48,9 +52,14 @@ export async function loadRoots(
         }
       }
     }
-  }
 
-  debug(`after: ${roots.size}`);
+    if (start === roots.size) {
+      debug(`done, now: ${roots.size}`);
+      break;
+    }
+
+    debug("let's try that one again!");
+  }
 
   return roots;
 }
