@@ -9,22 +9,27 @@ async function callGit(cwd: string, command: string[]): Promise<string> {
     cwd,
   });
 
-  let buf = '';
-  for await (const chunk of child.stdout) {
-    const text = (chunk as Buffer).toString('utf-8');
-    buf += text;
-  }
-
-  return new Promise((resolve, reject) => {
+  // work-around spooky exit
+  const exit = new Promise((resolve, reject) => {
     child.once('exit', (code) => {
       if (0 === code) {
-        resolve(buf);
+        resolve();
       } else {
         reject(`exit code: ${code} running ${command} in ${cwd}`);
       }
     });
     child.once('error', (err) => reject(err));
   });
+
+  let buf = '';
+  for await (const chunk of child.stdout) {
+    const text = (chunk as Buffer).toString('utf-8');
+    buf += text;
+  }
+
+  await exit;
+
+  return buf;
 }
 
 export async function ensureRepo(path: string, cloneUrl: string) {
@@ -38,11 +43,11 @@ export async function ensureRepo(path: string, cloneUrl: string) {
 }
 
 export async function gitClone(url: string, dest: string): Promise<void> {
-  await callGit('/', ['clone', '--quiet', url, dest]);
+  await callGit('/', ['clone', '--bare', '--quiet', url, dest]);
 }
 
 export async function gitRemoteUpdate(cwd: string): Promise<void> {
-  await callGit(cwd, ['remote', 'update', '--prune']);
+  await callGit(cwd, ['fetch', 'origin', '+refs/heads/*:refs/heads/*', '--prune']);
 }
 
 export async function gitIsEmpty(cwd: string): Promise<boolean> {
