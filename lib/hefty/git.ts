@@ -63,7 +63,7 @@ export interface IGitFile {
 }
 
 export async function gitLsTree(cwd: string, ref: string): Promise<IGitFile[]> {
-  const output = await callGit(cwd, ['ls-tree', ref]);
+  const output = await callGit(cwd, ['ls-tree', '-r', ref]);
   const ret: IGitFile[] = [];
 
   for (const line of output.split('\n')) {
@@ -81,10 +81,10 @@ export async function gitLsTree(cwd: string, ref: string): Promise<IGitFile[]> {
   return ret;
 }
 
-type ObjectType = 'blob' | 'tree' | 'commit';
+type ObjectType = 'blob' | 'commit';
 
 export function isObjectType(type: string): type is ObjectType {
-  return ['blob', 'commit', 'tree'].includes(type);
+  return ['blob', 'commit'].includes(type);
 }
 
 export async function gitCatBlob(

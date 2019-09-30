@@ -14,7 +14,7 @@ export interface IPackageJson {
 export interface IPipFile {}
 
 export interface IRepoInfo {
-  rootFiles: IGitFile[];
+  files: IGitFile[];
   codeOwners?: CodeOwnersEntry[];
   packageJson?: IPackageJson;
   packageLockJson?: unknown;
@@ -23,21 +23,21 @@ export interface IRepoInfo {
 
 export async function repoInfo(repo: string): Promise<IRepoInfo> {
   if (await gitIsEmpty(repo)) {
-    return { rootFiles: [] };
+    return { files: [] };
   }
-  const rootFiles = await gitLsTree(repo, 'HEAD');
-  const rootFileNames = rootFiles.map((git) => git.path);
+  const files = await gitLsTree(repo, 'HEAD');
+  const fileNames = files.map((git) => git.path);
 
   let packageJson = undefined;
 
-  if (rootFileNames.includes('package.json')) {
+  if (fileNames.includes('package.json')) {
     const blob = await gitCatBlob(repo, 'HEAD', 'package.json');
     packageJson = JSON.parse(blob);
   }
 
   let codeOwners = undefined;
 
-  if (rootFileNames.includes('.github')) {
+  if (fileNames.includes('.github/CODEOWNERS')) {
     let blob;
     try {
       blob = await gitCatBlob(repo, 'HEAD', '.github/CODEOWNERS');
@@ -50,5 +50,5 @@ export async function repoInfo(repo: string): Promise<IRepoInfo> {
     }
   }
 
-  return { rootFiles, packageJson, codeOwners };
+  return { files, packageJson, codeOwners };
 }
