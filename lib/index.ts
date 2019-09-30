@@ -56,6 +56,10 @@ async function main() {
     const rootOwners = (info.codeOwners || [])
       .filter((co) => co.pattern === '*')
       .map((co) => co.owners);
+    const codeFiles = info.files.filter((f) =>
+      f.path.match(/\.(?:jsx?|tsx?|vue|py|pl|php|java|cs|go|rb|rs|sh|swift)$/),
+    ).length;
+
     return {
       repo,
       info,
@@ -65,6 +69,7 @@ async function main() {
         lastPush,
         quiteOld: lastPush < quiteOldCutoff,
         veryOld: lastPush < veryOldCutoff,
+        codeFiles,
       },
     };
   });
@@ -95,6 +100,7 @@ async function main() {
       repo.fork ? fork : '  ',
       comp.veryOld ? veryOld : comp.quiteOld ? quiteOld : '  ',
       (repo.has_issues ? repo.open_issues_count : 0).toString().padStart(3),
+      comp.codeFiles.toString().padStart(4),
       repo.name,
       info.packageJson ? `(nee ${info.packageJson.name})` : '',
       comp.owners ? comp.rootOwners : '',
