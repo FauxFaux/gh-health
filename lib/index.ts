@@ -26,11 +26,19 @@ async function main() {
     await updateGithubData(org);
   }
 
+  const ghDataIncludingArchived = await githubData(org);
+
+  const ghData = ghDataIncludingArchived.filter((repo) => !repo.archived);
+
+  debug(
+    `${ghDataIncludingArchived.length -
+      ghData.length} archived repos hard removed`,
+  );
+
   if (argv.fetch) {
     await fetchRepos(org);
   }
 
-  const ghData = await githubData(org);
   debug(`extracting info from ${ghData.length} repos`);
   let reposP = await repoMeta(ghData);
 
@@ -73,10 +81,6 @@ async function main() {
   );
 
   for (const { repo, info, comp } of repos) {
-    if (repo.archived) {
-      continue;
-    }
-
     const megaphone = '\u{1F4E2}';
     const fork = '\u{1F374}';
     const queen = '\u{1F478}';

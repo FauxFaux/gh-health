@@ -47,7 +47,12 @@ export async function gitClone(url: string, dest: string): Promise<void> {
 }
 
 export async function gitRemoteUpdate(cwd: string): Promise<void> {
-  await callGit(cwd, ['fetch', 'origin', '+refs/heads/*:refs/heads/*', '--prune']);
+  await callGit(cwd, [
+    'fetch',
+    'origin',
+    '+refs/heads/*:refs/heads/*',
+    '--prune',
+  ]);
 }
 
 export async function gitIsEmpty(cwd: string): Promise<boolean> {

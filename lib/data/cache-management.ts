@@ -21,8 +21,12 @@ export async function githubData(org: string): Promise<IRepo[]> {
   return JSON.parse(buffer.toString('utf-8'));
 }
 
-export async function fetchRepos(org: string) {
-  const repos = await githubData(org);
+interface IFetchyRepo {
+  full_name: string;
+  ssh_url: string;
+}
+
+export async function fetchRepos(repos: IFetchyRepo[]) {
   await pMap(
     repos,
     async (repo) => {
