@@ -44,13 +44,6 @@ async function main() {
 
   const roots = await loadRoots(reposP, argv.roots);
 
-  const quiteOldCutoff = moment()
-    .subtract(2, 'months')
-    .toDate();
-  const veryOldCutoff = moment()
-    .subtract(8, 'months')
-    .toDate();
-
   let repos = reposP.map(({ repo, info }) => {
     const lastPush = new Date(repo.pushed_at || repo.created_at);
     const rootOwners = (info.codeOwners || [])
@@ -67,44 +60,25 @@ async function main() {
         rootOwners,
         owners: rootOwners.length,
         lastPush,
-        quiteOld: lastPush < quiteOldCutoff,
-        veryOld: lastPush < veryOldCutoff,
+        ageDays: moment().diff(moment(lastPush), 'days'),
         codeFiles,
       },
     };
   });
 
-  repos = _.sortBy(
-    repos,
-    ({ comp }) => comp.owners,
-    ({ repo }) => roots.has(repo.name),
-    ({ repo }) => !repo.private,
-    ({ repo }) => !repo.fork,
-    ({ comp }) => comp.quiteOld,
-    ({ comp }) => comp.veryOld,
-    ({ repo }) => repo.full_name,
-  );
-
   for (const { repo, info, comp } of repos) {
-    const megaphone = '\u{1F4E2}';
-    const fork = '\u{1F374}';
-    const queen = '\u{1F478}';
-    const treeRoot = '\u{1F332}';
-    const veryOld = '\u{26B0}\u{FE0F} ';
-    const quiteOld = '\u{1F474}';
-
-    console.log(
-      comp.owners ? queen : '  ',
-      roots.has(repo.name) ? treeRoot : '  ',
-      repo.private ? '  ' : megaphone,
-      repo.fork ? fork : '  ',
-      comp.veryOld ? veryOld : comp.quiteOld ? quiteOld : '  ',
-      (repo.has_issues ? repo.open_issues_count : 0).toString().padStart(3),
-      comp.codeFiles.toString().padStart(4),
+    console.log([
+      comp.owners ? comp.rootOwners.join(' ') : '',
+      roots.has(repo.name),
+      !repo.private,
+      repo.fork,
+      comp.ageDays,
+      repo.open_issues_count,
+      comp.codeFiles,
       repo.name,
-      info.packageJson ? `(nee ${info.packageJson.name})` : '',
-      comp.owners ? comp.rootOwners : '',
-    );
+      info.packageJson ? info.packageJson.name : '',
+      repo.description,
+    ].join('\t'));
   }
 }
 
