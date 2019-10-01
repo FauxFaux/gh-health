@@ -20,7 +20,7 @@ async function main() {
     .option('roots', { nargs: 1 })
     .help().argv;
 
-  const org = argv.org;
+  const org: string = argv.org;
 
   if (argv.update) {
     await updateGithubData(org);
@@ -36,7 +36,7 @@ async function main() {
   );
 
   if (argv.fetch) {
-    await fetchRepos(org);
+    await fetchRepos(ghData);
   }
 
   debug(`extracting info from ${ghData.length} repos`);
