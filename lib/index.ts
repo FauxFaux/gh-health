@@ -1,5 +1,3 @@
-import * as _ from 'lodash';
-
 const debug = require('debug')('gh-health');
 
 import {
@@ -53,7 +51,8 @@ async function main() {
 
   const roots = await loadRoots(reposP, argv.roots);
 
-  let repos = reposP.map(({ repo, info }) => {
+  let repos = reposP.map((repoData) => {
+    const { repo, info } = repoData;
     const lastPush = new Date(repo.pushed_at || repo.created_at);
     const rootOwners = (info.codeOwners || [])
       .filter((co) => co.pattern === '*')
@@ -63,8 +62,7 @@ async function main() {
     ).length;
 
     return {
-      repo,
-      info,
+      ...repoData,
       comp: {
         rootOwners,
         owners: rootOwners.length,
