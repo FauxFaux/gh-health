@@ -41,3 +41,17 @@ export interface IRepo {
     pull: boolean;
   };
 }
+
+export interface ITeam {
+  name: string;
+  id: number;
+  node_id: string;
+  slug: string;
+  description: string;
+  privacy: 'closed';
+  url: string;
+  html_url: string;
+  members_url: string;
+  repositories_url: string;
+  permission: 'admin' | 'pull' | 'push';
+}

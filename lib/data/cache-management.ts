@@ -5,7 +5,7 @@ import * as pMap from 'p-map';
 
 import { getRepos, getTeams } from '../hefty/gh';
 import { repoBarePath, reposJson, repoTeamJson } from './cache-paths';
-import { IRepo } from './gh-org-repos';
+import { IRepo, ITeam } from './gh-org-repos';
 import { ensureRepo } from '../hefty/git';
 import { IRepoInfo, repoInfo } from '../hefty/repo-info';
 
@@ -40,7 +40,7 @@ export async function githubData(org: string): Promise<IRepo[]> {
 export async function githubTeams(
   owner: string,
   repo: string,
-): Promise<object> {
+): Promise<ITeam[]> {
   return await loadJson(repoTeamJson(owner, repo));
 }
 
@@ -61,7 +61,7 @@ export async function fetchRepos(repos: IFetchyRepo[]) {
 
 export async function repoMeta(
   repos: IRepo[],
-): Promise<Array<{ repo: IRepo; info: IRepoInfo }>> {
+): Promise<Array<{ repo: IRepo; info: IRepoInfo; teams: ITeam[] }>> {
   return await pMap(
     repos,
     async (repo) => ({
