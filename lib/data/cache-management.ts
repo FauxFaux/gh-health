@@ -3,8 +3,8 @@ import * as os from 'os';
 
 import * as pMap from 'p-map';
 
-import { getRepos } from '../hefty/gh';
-import { repoBarePath, reposJson } from './cache-paths';
+import { getRepos, getTeams } from '../hefty/gh';
+import { repoBarePath, reposJson, repoTeamJson } from './cache-paths';
 import { IRepo } from './gh-org-repos';
 import { ensureRepo } from '../hefty/git';
 import { IRepoInfo, repoInfo } from '../hefty/repo-info';
@@ -16,9 +16,32 @@ export async function updateGithubData(org: string) {
   await fs.writeFile(reposJson(org), JSON.stringify(repos));
 }
 
-export async function githubData(org: string): Promise<IRepo[]> {
-  let buffer = await fs.readFile(reposJson(org));
+export async function updateGithubTeams(repos: IRepo[]) {
+  await pMap(
+    repos,
+    async (repo) => {
+      const owner = repo.owner.login;
+      const teams = await getTeams(owner, repo.name);
+      await fs.writeFile(repoTeamJson(owner, repo.name), JSON.stringify(teams));
+    },
+    { concurrency },
+  );
+}
+
+async function loadJson(path: string): Promise<any> {
+  let buffer = await fs.readFile(path);
   return JSON.parse(buffer.toString('utf-8'));
+}
+
+export async function githubData(org: string): Promise<IRepo[]> {
+  return await loadJson(reposJson(org));
+}
+
+export async function githubTeams(
+  owner: string,
+  repo: string,
+): Promise<object> {
+  return await loadJson(repoTeamJson(owner, repo));
 }
 
 interface IFetchyRepo {
@@ -44,6 +67,7 @@ export async function repoMeta(
     async (repo) => ({
       repo,
       info: await repoInfo(repoBarePath(repo.full_name)),
+      teams: await githubTeams(repo.owner.login, repo.name),
     }),
     { concurrency: 1 },
   );

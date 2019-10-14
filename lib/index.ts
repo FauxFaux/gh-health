@@ -7,6 +7,7 @@ import {
   fetchRepos,
   githubData,
   repoMeta,
+  updateGithubTeams,
 } from './data/cache-management';
 import { loadRoots } from './data/roots';
 import moment = require('moment');
@@ -16,6 +17,7 @@ async function main() {
     .option('org', { default: process.env.GH_ORG })
     // .command('update', 'fetch things from the internet', async )
     .option('update', {})
+    .option('update-teams', {})
     .option('fetch', {})
     .option('roots', { nargs: 1 })
     .help().argv;
@@ -28,12 +30,19 @@ async function main() {
 
   const ghDataIncludingArchived = await githubData(org);
 
-  const ghData = ghDataIncludingArchived.filter((repo) => !repo.archived);
+  const ghData = ghDataIncludingArchived
+    .filter((repo) => !repo.archived)
+    // there's nothing in the repo meta for this that I can see; it's private, it's *not* a fork
+    .filter((repo) => !repo.name.match(/-ghsa(:?-\w{4}){3}/));
 
   debug(
     `${ghDataIncludingArchived.length -
       ghData.length} archived repos hard removed`,
   );
+
+  if (argv['update-teams']) {
+    await updateGithubTeams(ghData);
+  }
 
   if (argv.fetch) {
     await fetchRepos(ghData);
@@ -67,18 +76,20 @@ async function main() {
   });
 
   for (const { repo, info, comp } of repos) {
-    console.log([
-      comp.owners ? comp.rootOwners.join(' ') : '',
-      roots.has(repo.name),
-      !repo.private,
-      repo.fork,
-      comp.ageDays,
-      repo.open_issues_count,
-      comp.codeFiles,
-      repo.name,
-      info.packageJson ? info.packageJson.name : '',
-      repo.description,
-    ].join('\t'));
+    console.log(
+      [
+        comp.owners ? comp.rootOwners.join(' ') : '',
+        roots.has(repo.name),
+        !repo.private,
+        repo.fork,
+        comp.ageDays,
+        repo.open_issues_count,
+        comp.codeFiles,
+        repo.name,
+        info.packageJson ? info.packageJson.name : '',
+        repo.description,
+      ].join('\t'),
+    );
   }
 }
 

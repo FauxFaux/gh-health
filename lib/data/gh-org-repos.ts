@@ -5,7 +5,10 @@ export interface IRepo {
   name: string;
   full_name: string;
   private: boolean;
-  owner: unknown;
+  owner: {
+    login: string;
+    // ...
+  };
   description: string;
   fork: boolean;
 
