@@ -1,10 +1,9 @@
 import * as path from 'path';
-import * as fs from 'fs-extra';
+import * as fs from 'node:fs';
 
 import cachedir = require('cachedir');
 
 const cacheDir = cachedir('gh-health');
-fs.mkdirpSync(cacheDir);
 
 export function reposJson(org: string): string {
   return path.join(cacheDir, `repos-${org}.json`);
@@ -12,7 +11,7 @@ export function reposJson(org: string): string {
 
 export function repoTeamJson(owner: string, repo: string): string {
   const dir = path.join(cacheDir, owner);
-  fs.mkdirpSync(dir);
+  fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, `teams-${repo}.json`);
 }
 

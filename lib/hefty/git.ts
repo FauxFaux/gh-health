@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 
 const debug = require('debug')('hefty/git');
 

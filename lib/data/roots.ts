@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import * as fs from 'node:fs/promises';
 import * as _ from 'lodash';
 
 import { IRepo } from './gh-org-repos';

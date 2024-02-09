@@ -1,16 +1,15 @@
-import * as fs from 'fs-extra';
-
-const debug = require('debug')('gh-health');
-
+import * as fs from 'node:fs/promises';
 import {
-  updateGithubData,
   fetchRepos,
   githubData,
   repoMeta,
+  updateGithubData,
   updateGithubTeams,
 } from './data/cache-management';
 import { loadRoots } from './data/roots';
-import moment = require('moment');
+import moment from 'moment';
+
+const debug = require('debug')('gh-health');
 
 async function main() {
   const argv = require('yargs')
