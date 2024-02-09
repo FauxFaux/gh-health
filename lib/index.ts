@@ -101,5 +101,4 @@ async function main() {
 }
 
 main()
-  .then(() => {})
-  .catch((e) => console.log('main failed', e));
+  .catch((e) => console.error('main failed', e));
