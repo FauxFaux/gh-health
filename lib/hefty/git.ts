@@ -10,7 +10,7 @@ async function callGit(cwd: string, command: string[]): Promise<string> {
   });
 
   // work-around spooky exit
-  const exit = new Promise((resolve, reject) => {
+  const exit = new Promise<void>((resolve, reject) => {
     child.once('exit', (code) => {
       if (0 === code) {
         resolve();

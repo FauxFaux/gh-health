@@ -1,4 +1,4 @@
-import * as Octokit from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 
 const auth = process.env.GITHUB_PRIVATE_TEST_TOKEN;
 const octokit = new Octokit({ auth });

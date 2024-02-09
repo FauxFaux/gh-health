@@ -25,10 +25,11 @@
     "yargs": "^14.0.0"
   },
   "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
     "@types/fs-extra": "^8.0.0",
     "@types/node": "^10.14.19",
     "@types/yargs": "^13.0.3",
     "prettier": "^1.18.2",
-    "typescript": "^3.6.3"
+    "typescript": "^5.3.3"
   }
 }

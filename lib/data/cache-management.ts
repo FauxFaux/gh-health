@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as os from 'os';
 
-import * as pMap from 'p-map';
+import pMap from 'p-map';
 
 import { getRepos, getTeams } from '../hefty/gh';
 import { repoBarePath, reposJson, repoTeamJson } from './cache-paths';
