@@ -21,7 +21,6 @@
     "moment": "^2.24.0",
     "p-map": "^3.0.0",
     "toml": "^3.0.0",
-    "tslib": "^1.10.0",
     "yargs": "^14.0.0"
   },
   "devDependencies": {
