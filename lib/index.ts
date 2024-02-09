@@ -1,3 +1,5 @@
+import * as fs from 'fs-extra';
+
 const debug = require('debug')('gh-health');
 
 import {
@@ -54,12 +56,18 @@ async function main() {
   let repos = reposP.map((repoData) => {
     const { repo, info } = repoData;
     const lastPush = new Date(repo.pushed_at || repo.created_at);
-    const rootOwners = (info.codeOwners || [])
+    const rootOwnersEntry = (info.codeOwners || [])
       .filter((co) => co.pattern === '*')
       .map((co) => co.owners);
     const codeFiles = info.files.filter((f) =>
       f.path.match(/\.(?:jsx?|tsx?|vue|py|pl|php|java|cs|go|rb|rs|sh|swift)$/),
     ).length;
+
+    if (rootOwnersEntry.length > 1) {
+      throw new Error(`invalid CODEOWNERS: two * lines? (${repo.full_name})`);
+    }
+
+    const rootOwners = rootOwnersEntry.length ? rootOwnersEntry[0] : [];
 
     return {
       ...repoData,
@@ -73,22 +81,23 @@ async function main() {
     };
   });
 
+  const simpleRepos = [];
   for (const { repo, info, comp } of repos) {
-    console.log(
-      [
-        comp.owners ? comp.rootOwners.join(' ') : '',
-        roots.has(repo.name),
-        !repo.private,
-        repo.fork,
-        comp.ageDays,
-        repo.open_issues_count,
-        comp.codeFiles,
-        repo.name,
-        info.packageJson ? info.packageJson.name : '',
-        repo.description,
-      ].join('\t'),
-    );
+    simpleRepos.push({
+      name: repo.name,
+      description: repo.description,
+      rootOwners: comp.rootOwners,
+      strongSet: roots.has(repo.name),
+      isPublic: !repo.private,
+      isFork: repo.fork,
+      lastActivityDays: comp.ageDays,
+      openIssues: repo.open_issues_count,
+      codeFiles: comp.codeFiles,
+      npmName: info.packageJson ? info.packageJson.name : null,
+    });
   }
+
+  await fs.writeFile('repos.json', JSON.stringify(simpleRepos));
 }
 
 main()
