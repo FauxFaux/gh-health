@@ -36,8 +36,9 @@ async function main() {
     .filter((repo) => !repo.name.match(/-ghsa(:?-\w{4}){3}/));
 
   debug(
-    `${ghDataIncludingArchived.length -
-      ghData.length} archived repos hard removed`,
+    `${
+      ghDataIncludingArchived.length - ghData.length
+    } archived repos hard removed`,
   );
 
   if (argv['update-teams']) {
@@ -100,5 +101,4 @@ async function main() {
   await fs.writeFile('repos.json', JSON.stringify(simpleRepos));
 }
 
-main()
-  .catch((e) => console.error('main failed', e));
+main().catch((e) => console.error('main failed', e));
